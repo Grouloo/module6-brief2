@@ -43,7 +43,7 @@ Les logs différencient clairement les cas :
 - `[RETRAINING]` : Réentraînement en cours/terminé
 - `[ALERT]` : Notification envoyée
 
-![prefect](./media/prefect.png)
+![prefect](./media/prefect-1.png)
 
 ### Grafana (port 3000)
 
