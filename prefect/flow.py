@@ -113,6 +113,21 @@ def notify_backend():
     except Exception as e:
         logger.error(f"Error calling backend reload: {e}")
 
+@task
+def mark_processed(ids):
+    logger = get_run_logger()
+    if not ids:
+        return
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(f'UPDATE corrections SET processed = 1 WHERE id IN ({",".join(map(str, ids))})')
+        conn.commit()
+        conn.close()
+        logger.info(f"Marked {len(ids)} corrections as processed.")
+    except Exception as e:
+        logger.error(f"Error marking corrections as processed: {e}")
+
 @flow(name="mnist_retraining_flow")
 def mnist_retraining_flow():
     logger = get_run_logger()
@@ -120,17 +135,37 @@ def mnist_retraining_flow():
     
     corrections = check_corrections()
     
-    # Logic: If we have enough corrections (simulating "drift" or simply new data availability)
-    if len(corrections) > DRIFT_THRESHOLD: 
-        logger.info(f"Threshold exceeded ({len(corrections)} > {DRIFT_THRESHOLD}). Retraining model.")
+    if corrections.empty:
+        logger.info("No corrections found.")
+        return
+
+    # Check for unprocessed corrections
+    if 'processed' not in corrections.columns:
+        # Handle case where column might be missing if DB wasn't migrated (though backend init_db does it)
+        # or if older records exist. 
+        # For robustness, assume all are unprocessed if column missing, or 0.
+        # But we added the column in backend. The flow reads what's there.
+        # If the column is missing in the DF, it means the SELECT * didn't return it? 
+        # SQLite adds column on ALTER, so it should be there.
+        unprocessed_count = len(corrections)
+        unprocessed_ids = corrections['id'].tolist()
+    else:
+        # Filter where processed == 0 or False (SQLite uses 0/1)
+        unprocessed = corrections[corrections['processed'] == 0]
+        unprocessed_count = len(unprocessed)
+        unprocessed_ids = unprocessed['id'].tolist()
+    
+    logger.info(f"Found {len(corrections)} total corrections, {unprocessed_count} new (unprocessed).")
+
+    # Logic: If we have enough NEW corrections
+    if unprocessed_count > DRIFT_THRESHOLD: 
+        logger.info(f"Threshold exceeded ({unprocessed_count} > {DRIFT_THRESHOLD}). Retraining model.")
         success = retrain_model(corrections)
         if success:
             notify_backend()
-            # Optionally: Mark corrections as 'processed' in DB or move them to archive to avoid double counting
-            # For this MVP, we assume we just retrain on everything available.
-            # Ideally, we would have a 'processed' flag in the DB.
+            mark_processed(unprocessed_ids)
     else:
-        logger.info("Not enough new data to justify retraining.")
+        logger.info(f"Not enough new data to justify retraining (Threshold: {DRIFT_THRESHOLD}).")
 
 if __name__ == "__main__":
     mnist_retraining_flow.serve(name="mnist-retraining-deployment", cron="0 * * * *") # Every hour
