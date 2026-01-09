@@ -16,7 +16,7 @@ docker compose up
 
 Interface *Streamlit* permettant d'interagir avec le backend.
 
-![Interface Streamlit](./media/frontend.png)
+![Interface Streamlit](./media/frontend-1.png)
 
 ![Interface Streamlit correction](./media/frontend-2.png)
 
