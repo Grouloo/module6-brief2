@@ -3,4 +3,4 @@ tensorflow
 pandas
 scikit-learn
 requests
-numpy>=3.0.0
+numpy

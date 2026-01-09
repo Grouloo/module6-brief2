@@ -127,3 +127,4 @@ volumes:
   grafana-storage:
   prefect-data:
   shared-data:
+  uptime-kuma-data:

@@ -12,6 +12,23 @@ docker compose up
 
 ## Composants
 
+### Frontend (port 8080)
+
+Interface *Streamlit* permettant d'interagir avec le backend.
+
+![Interface Streamlit](./media/frontend.png)
+
+![Interface Streamlit correction](./media/frontend-2.png)
+
+### Backend (port 8000)
+
+Une API HTTP exposant les *endpoints* suivants :
+
+- **/predict :** Permet de prédire un chiffre
+- **/correct :** Permet de corriger un chiffre
+- **/reload :** Permet de recharger le modèle
+- **/health :** Permet de connaître le statut de l'API
+
 ### Prefect (port 4200)
 
 Prefect est utilisé pour orchestrer les workflows de supervision. L'interface web est accessible sur le port 4200.
@@ -25,25 +42,6 @@ Les logs différencient clairement les cas :
 - `[ALERT]` : Notification envoyée
 
 ![prefect](./media/prefect.png)
-
-### Backend (port 8000)
-
-Une API HTTP exposant les *endpoints* suivants :
-
-- **/calcul :** Permet d'obtenir le carré d'un nombre
-- **/health :** Permet de connaître le statut de l'API
-
-#### Tests unitaires
-
-Le backend possède des tests unitaires sur la fonction `calcul`. Leur contenu peut être trouvé dans le fichier `backend/test/test_calcul.py`
-
-**L'évaluation des tests unitaires est déclenchée par une GitHub Action à chaque nouveau commit.**
-
-### Frontend (port 8080)
-
-Interface *Streamlit* permettant d'interagir avec le backend.
-
-![Interface Streamlit](./media/frontend.png)
 
 ### Grafana (port 3000)
 

@@ -6,22 +6,22 @@ from PIL import Image
 import numpy as np
 import io
 
-st.set_page_config(page_title="Digit Recognizer", page_icon="🔢")
+st.set_page_config(page_title="Reconnaissance de nombre", page_icon="🔢")
 
-st.title("🔢 Digit Recognizer")
-st.markdown("Draw a digit (0-9) below and let the AI guess it!")
+st.title("Reconaissance de nombre")
+st.markdown("Dessinez un nombre (0-9) ci-dessous et laisse l'IA deviner!")
 
 # Create a layout with two columns
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.subheader("Draw here")
+    st.subheader("Dessinez ici")
     # Drawable canvas
     canvas_result = st_canvas(
         fill_color="rgba(255, 165, 0, 0.3)",
         stroke_width=15,
-        stroke_color="#FFFFFF",
-        background_color="#000000",
+        stroke_color="#000000",
+        background_color="#FFFFFF",
         height=280,
         width=280,
         drawing_mode="freedraw",
@@ -37,7 +37,7 @@ if canvas_result.image_data is not None:
     # A simple check is if the sum of the array is different from the background (all black)
     # But checking if user clicked "Predict" is better control
     
-    if st.button("Predict"):
+    if st.button("Prédire"):
         try:
             # Prepare image for API
             img = Image.fromarray(canvas_result.image_data.astype("uint8"), "RGBA")
@@ -64,8 +64,8 @@ if canvas_result.image_data is not None:
             st.session_state['prediction_state'] = prediction
             
             with col2:
-                st.subheader("Results")
-                st.success(f"Prediction: **{prediction}**")
+                st.subheader("Résultats")
+                st.success(f"Prédiction: **{prediction}**")
                 
                 # Show probabilities
                 if probabilities:
@@ -78,12 +78,12 @@ if canvas_result.image_data is not None:
 # Correction section
 if st.session_state.get('prediction_state') is not None:
     st.divider()
-    st.subheader("Is this correct?")
+    st.subheader("Est-ce correct?")
     
-    with st.expander("No, help me learn!"):
-        correct_label = st.selectbox("What was the correct digit?", range(10))
+    with st.expander("Non, aide moi à apprendre!"):
+        correct_label = st.selectbox("Quel était le bon chiffre?", range(10))
         
-        if st.button("Submit Correction"):
+        if st.button("Soumettre la correction"):
             if st.session_state.get('last_image_bytes'):
                 try:
                     files = {
