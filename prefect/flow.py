@@ -133,4 +133,4 @@ def mnist_retraining_flow():
         logger.info("Not enough new data to justify retraining.")
 
 if __name__ == "__main__":
-    mnist_retraining_flow.serve(name="mnist-retraining-deployment", cron="* * * * *") # Every hour
+    mnist_retraining_flow.serve(name="mnist-retraining-deployment", cron="0 * * * *") # Every hour

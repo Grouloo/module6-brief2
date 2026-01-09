@@ -33,6 +33,8 @@ Une API HTTP exposant les *endpoints* suivants :
 
 Prefect est utilisé pour orchestrer les workflows de supervision. L'interface web est accessible sur le port 4200.
 
+Toutes les heures, une procédure de retraining est lancée si nécessaire si plus de 5 corrections ont été ajoutées depuis la dernière procédure.
+
 **Logs :**
 
 Les logs différencient clairement les cas :

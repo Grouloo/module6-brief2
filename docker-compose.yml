@@ -29,7 +29,7 @@ services:
     container_name: prefect-worker
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
-      - DRIFT_THRESHOLD=0.7
+      - DRIFT_THRESHOLD=5
       - CHECK_INTERVAL=30
     volumes:
       - shared-data:/app/data
