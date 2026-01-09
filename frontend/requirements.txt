@@ -1,0 +1,9 @@
+uvicorn
+streamlit
+requests
+loguru
+streamlit-drawable-canvas
+pillow
+numpy
+fastapi
+pydantic

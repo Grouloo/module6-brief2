@@ -1,0 +1,129 @@
+services:
+  # ============================================
+  # Prefect - Orchestration des workflows
+  # ============================================
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    container_name: prefect-server
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "4200:4200"
+    environment:
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:////data/prefect.db
+    volumes:
+      - prefect-data:/data
+      - shared-data:/app/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prefect-worker:
+    build:
+      context: ./prefect
+      dockerfile: Dockerfile
+    container_name: prefect-worker
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+      - DRIFT_THRESHOLD=0.7
+      - CHECK_INTERVAL=30
+    volumes:
+      - shared-data:/app/data
+    networks:
+      - app-network
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ============================================
+  # Application principale
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - shared-data:/app/data
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app-network
+    expose:
+      - 9090
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    privileged: true
+    user: root
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+    networks:
+      - app-network
+    expose:
+      - 9100
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
+  prefect-data:
+  shared-data:

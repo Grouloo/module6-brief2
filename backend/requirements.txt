@@ -1,0 +1,12 @@
+uvicorn
+streamlit
+requests
+loguru
+fastapi
+uvicorn
+loguru
+pydantic
+tensorflow
+pillow
+numpy
+aiofiles
